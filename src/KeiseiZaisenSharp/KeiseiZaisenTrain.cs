@@ -73,7 +73,7 @@ namespace KeiseiZaisenSharp
             this._configurationSources = configurationSources;
 
             this.RawSource = trafficSection.Tr[numberInSection];
-            this.Location = new KeiseiZaisenTrainLocation(configurationSources, trafficSection);
+            this.Location = new KeiseiZaisenTrainLocation(configurationSources, trafficSection, this.RawSource);
         }
     }
 }

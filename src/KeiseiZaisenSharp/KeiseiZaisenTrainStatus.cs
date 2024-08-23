@@ -12,9 +12,10 @@ namespace KeiseiZaisenSharp
         Unknown       = 0b0000,
 
         /// <summary>
-        /// 駅に停車中
+        /// 駅に停車中または通過中
         /// </summary>
-        Stopping      = 0b0001,
+        StoppingOrPassing
+                      = 0b0001,
 
         /// <summary>
         /// 走行中

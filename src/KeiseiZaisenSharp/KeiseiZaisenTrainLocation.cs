@@ -10,43 +10,20 @@ namespace KeiseiZaisenSharp
     public class KeiseiZaisenTrainLocation
     {
         private KeiseiZaisenConfigurationSources _configurationSources;
+        private TrafficRecord _trafficRecord;
 
         public string Description
         {
             get
             {
-                //foreach (var st in this._configurationSources.Stops)
-                //{
-                //    var codeInt = 0;
-                //    if (!Int32.TryParse(st.Code, out codeInt))
-                //        continue;
-
-                //    if (this.RawSource.Id == $"E{codeInt.ToString("000")}")
-                //        return $"[停車中] {st.Name}";
-
-                //    if (this.RawSource.Id == $"D{codeInt.ToString("000")}")
-                //    {
-                //        var prevStp = this._configurationSources.GetNextStop(st, 0);
-                //        return $"[走行中, 下り] {prevStp?.Name} => {st.Name}";
-                //    }
-
-                //    if (this.RawSource.Id == $"U{codeInt.ToString("000")}")
-                //    {
-                //        var prevStp = this._configurationSources.GetNextStop(st, 1);
-                //        return $"[走行中, 上り] {prevStp?.Name} => {st.Name}";
-                //    }
-                //}
-
-                //return "[不明]";
-
                 switch (this.Status)
                 {
-                    case KeiseiZaisenTrainStatus.Stopping:
-                        return $"[停車中] {this.CurrentOrNextStation}";
+                    case KeiseiZaisenTrainStatus.StoppingOrPassing:
+                        return $"[停車・通過中] {this.CurrentOrNextStation} ({this.Track} 番線)";
                     case KeiseiZaisenTrainStatus.RunningToDown:
-                        return $"[走行中, 下り] {this.PrevStation} => {this.CurrentOrNextStation}";
+                        return $"[走行中, 下り] {this.PrevStation ?? "(不明)"} => {this.CurrentOrNextStation}";
                     case KeiseiZaisenTrainStatus.RunningToUp:
-                        return $"[走行中, 上り] {this.PrevStation} => {this.CurrentOrNextStation}";
+                        return $"[走行中, 上り] {this.PrevStation ?? "(不明)"} => {this.CurrentOrNextStation}";
                 }
 
                 return "[不明]";
@@ -62,7 +39,7 @@ namespace KeiseiZaisenSharp
 
                 var c = this.RawSource.Id[0];
                 if (c == 'E')
-                    return KeiseiZaisenTrainStatus.Stopping;
+                    return KeiseiZaisenTrainStatus.StoppingOrPassing;
                 if (c == 'D')
                     return KeiseiZaisenTrainStatus.RunningToDown;
                 if (c == 'U')
@@ -72,6 +49,18 @@ namespace KeiseiZaisenSharp
             }
         }
 
+        public int Track
+        {
+            get
+            {
+                var bs = 0;
+                if (Int32.TryParse(this._trafficRecord.Bs, out bs))
+                    return bs;
+                return -1;
+            }
+        }
+
+        [JsonIgnore]
         public StopEntry? CurrentOrNextStationInfo
         {
             get
@@ -126,9 +115,10 @@ namespace KeiseiZaisenSharp
             private set;
         }
 
-        public KeiseiZaisenTrainLocation(KeiseiZaisenConfigurationSources configurationSources, TrafficSection rawSource)
+        public KeiseiZaisenTrainLocation(KeiseiZaisenConfigurationSources configurationSources, TrafficSection rawSource, TrafficRecord rawRecord)
         {
             this._configurationSources = configurationSources;
+            this._trafficRecord = rawRecord;
 
             this.RawSource = rawSource;
         }
