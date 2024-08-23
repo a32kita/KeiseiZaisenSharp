@@ -161,8 +161,8 @@ namespace KeiseiZaisenSharp
 
             var trafficInfos = await this.GetRawTrafficInfoAsync();
             var trafficSections = new List<TrafficSection>();
-            trafficSections.AddRange(trafficInfos.TS);
-            trafficSections.AddRange(trafficInfos.EK);
+            trafficSections.AddRange(trafficInfos.TS ?? new List<TrafficSection>());
+            trafficSections.AddRange(trafficInfos.EK ?? new List<TrafficSection>());
 
             if (sort)
             {

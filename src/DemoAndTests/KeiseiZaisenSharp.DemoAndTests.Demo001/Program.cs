@@ -8,7 +8,7 @@ namespace KeiseiZaisenSharp.DemoAndTests.Demo001
         static void Main(string[] args)
         {
             var baseUri = new Uri("https://php-api-sv02.a32kita.net/keisei_dummy/");
-            //baseUri = null;
+            baseUri = null;
 
             using (var kzSv = new KeiseiZaisenService(baseUri))
                 MainProc2(kzSv).Wait();
