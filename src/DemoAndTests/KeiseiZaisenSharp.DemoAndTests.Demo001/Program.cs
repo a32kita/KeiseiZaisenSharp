@@ -1,4 +1,5 @@
 ﻿using KeiseiZaisenSharp.RawEntities.TrafficInfos;
+using System.Text.Json;
 
 namespace KeiseiZaisenSharp.DemoAndTests.Demo001
 {
@@ -6,7 +7,10 @@ namespace KeiseiZaisenSharp.DemoAndTests.Demo001
     {
         static void Main(string[] args)
         {
-            using (var kzSv = new KeiseiZaisenService())
+            var baseUri = new Uri("https://php-api-sv02.a32kita.net/keisei_dummy/");
+            //baseUri = null;
+
+            using (var kzSv = new KeiseiZaisenService(baseUri))
                 MainProc2(kzSv).Wait();
         }
 
@@ -19,6 +23,10 @@ namespace KeiseiZaisenSharp.DemoAndTests.Demo001
             Console.WriteLine("青砥駅周辺の列車");
             foreach (var train in trains.Where(item => item.Location.Description.Contains("青砥")))
                 PrintTrainInfo(train, false);
+
+            Console.WriteLine("JSON 出力");
+            Console.WriteLine();
+            Console.WriteLine(JsonSerializer.Serialize(trains, new JsonSerializerOptions() { WriteIndented = true }));
 
             Console.ReadLine();
         }

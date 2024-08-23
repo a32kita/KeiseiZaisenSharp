@@ -4,6 +4,7 @@ using System.Text;
 using System.Linq;
 
 using KeiseiZaisenSharp.RawEntities.TrafficInfos;
+using System.Text.Json.Serialization;
 
 namespace KeiseiZaisenSharp
 {
@@ -44,8 +45,23 @@ namespace KeiseiZaisenSharp
         }
 
         /// <summary>
+        /// 遅延 (min)
+        /// </summary>
+        public int? Delay
+        {
+            get
+            {
+                var d = 0;
+                if (Int32.TryParse(this.RawSource.Dl, out d))
+                    return d;
+                return null;
+            }
+        }
+
+        /// <summary>
         /// サーバから取得した生データ
         /// </summary>
+        [JsonIgnore]
         public TrafficRecord RawSource
         {
             get;

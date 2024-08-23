@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Runtime;
 using System.Text;
@@ -22,8 +23,27 @@ namespace KeiseiZaisenSharp
 
         private KeiseiZaisenConfigurationSources? _configurationSources;
 
-        public KeiseiZaisenService()
+
+        private Uri _baseUri;
+
+        public string BaseUri
         {
+            get => this._baseUri.ToString();
+        }
+
+        public string SystemVersion
+        {
+            get;
+        }
+
+        public KeiseiZaisenService(Uri? baseUri = null, string systemVersion = "2.04")
+        {
+            if (baseUri == null)
+                baseUri = new Uri("https://zaisen.tid-keisei.jp/");
+            this._baseUri = baseUri;
+            
+            this.SystemVersion = systemVersion;
+
             this._httpClient = new HttpClient();
             this._isDisposed = false;
             
@@ -45,6 +65,7 @@ namespace KeiseiZaisenSharp
         private async Task<T> _getJsonDataAsync<T>(Uri uri)
         {
             this._checkDisposed();
+#if true
             using (var hres = await this._httpClient.GetAsync(uri))
             using (var hcon = await hres.Content.ReadAsStreamAsync())
             {
@@ -52,6 +73,33 @@ namespace KeiseiZaisenSharp
                     throw new Exception("Failed to loading HTTP Response Content.");
 
                 var result = await JsonSerializer.DeserializeAsync<T>(hcon, this._jsonSerializerOptions);
+#elif DEBUG
+            using (var hres = await this._httpClient.GetAsync(uri))
+            {
+                var hconStr = await hres.Content.ReadAsStringAsync();
+                if (String.IsNullOrEmpty(hconStr))
+                    throw new Exception("Failed to loading HTTP Response Content.");
+                var result = JsonSerializer.Deserialize<T>(hconStr);
+
+                try
+                {
+                    var outputDir = Path.Combine(
+                        Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
+                        "serverData_debug");
+                    if (Directory.Exists(outputDir) == false)
+                        Directory.CreateDirectory(outputDir);
+
+                    var fileName = Path.GetFileName(uri.LocalPath);
+                    var outputPath = Path.Combine(outputDir, fileName);
+
+                    File.WriteAllText(outputPath, hconStr);
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine(ex.GetType().FullName);
+                    Console.Error.WriteLine(ex.Message);
+                }
+#endif
                 if (result == null)
                     throw new Exception("Failed to loading JSON data.");
 
@@ -70,31 +118,37 @@ namespace KeiseiZaisenSharp
 
         public async Task<TrafficInfo> GetRawTrafficInfoAsync()
         {
-            var uri = new Uri("https://zaisen.tid-keisei.jp/data/traffic_info.json?ts=1724384830035");
+            var unixEpcTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var uri = new Uri(this._baseUri, $"data/traffic_info.json?ts={unixEpcTime.ToString()}");
+
             return await this._getJsonDataAsync<TrafficInfo>(uri);
         }
 
         public async Task<Stations> GetRawStationsAsync()
         {
-            var uri = new Uri("https://zaisen.tid-keisei.jp/config/station.json?ver=2.04");
+            var uri = new Uri(this._baseUri, $"config/station.json?ver={this.SystemVersion}");
+
             return await this._getJsonDataAsync<Stations>(uri);
         }
 
         public async Task<Ikisakis> GetRawIkisakisAsync()
         {
-            var uri = new Uri("https://zaisen.tid-keisei.jp/config/ikisaki.json?ver=2.04");
+            var uri = new Uri(this._baseUri, $"config/ikisaki.json?ver={this.SystemVersion}");
+
             return await this._getJsonDataAsync<Ikisakis>(uri);
         }
 
         public async Task<Stops> GetRawStopsAsync()
         {
-            var uri = new Uri("https://zaisen.tid-keisei.jp/config/stop.json?ver=2.04");
+            var uri = new Uri(this._baseUri, $"config/stop.json?ver={this.SystemVersion}");
+
             return await this._getJsonDataAsync<Stops>(uri);
         }
 
         public async Task<Syasyus> GetRawSyasyusAsync()
         {
-            var uri = new Uri("https://zaisen.tid-keisei.jp/config/syasyu.json?ver=2.04");
+            var uri = new Uri(this._baseUri, $"config/syasyu.json?ver={this.SystemVersion}");
+
             return await this._getJsonDataAsync<Syasyus>(uri);
         }
 
