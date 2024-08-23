@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35208.52
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeiseiZaisenSharp", "KeiseiZaisenSharp\KeiseiZaisenSharp.csproj", "{22477EC7-3C5B-425E-8C77-16DE2B57CB18}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DemoAndTests", "DemoAndTests", "{4E76B10A-05A3-45E0-9158-04B3632E9AF4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeiseiZaisenSharp.DemoAndTests.Demo001", "DemoAndTests\KeiseiZaisenSharp.DemoAndTests.Demo001\KeiseiZaisenSharp.DemoAndTests.Demo001.csproj", "{F32CDE59-5A56-4EE0-B92D-36E6311E54EF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{22477EC7-3C5B-425E-8C77-16DE2B57CB18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22477EC7-3C5B-425E-8C77-16DE2B57CB18}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22477EC7-3C5B-425E-8C77-16DE2B57CB18}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22477EC7-3C5B-425E-8C77-16DE2B57CB18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F32CDE59-5A56-4EE0-B92D-36E6311E54EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F32CDE59-5A56-4EE0-B92D-36E6311E54EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F32CDE59-5A56-4EE0-B92D-36E6311E54EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F32CDE59-5A56-4EE0-B92D-36E6311E54EF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F32CDE59-5A56-4EE0-B92D-36E6311E54EF} = {4E76B10A-05A3-45E0-9158-04B3632E9AF4}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9F49F565-0BD7-40FA-A03F-4BCB4E5E14C4}
+	EndGlobalSection
+EndGlobal
