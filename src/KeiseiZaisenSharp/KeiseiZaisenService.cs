@@ -20,6 +20,8 @@ namespace KeiseiZaisenSharp
 
         private JsonSerializerOptions _jsonSerializerOptions;
 
+        private KeiseiZaisenConfigurationSources? _configurationSources;
+
         public KeiseiZaisenService()
         {
             this._httpClient = new HttpClient();
@@ -40,7 +42,7 @@ namespace KeiseiZaisenSharp
                 throw new Exception("HttpClient is null.");
         }
 
-        public async Task<T> GetJsonDataAsync<T>(Uri uri)
+        private async Task<T> _getJsonDataAsync<T>(Uri uri)
         {
             this._checkDisposed();
             using (var hres = await this._httpClient.GetAsync(uri))
@@ -57,39 +59,97 @@ namespace KeiseiZaisenSharp
             }
         }
 
-        public async Task<TrafficInfo> GetTrafficInfoAsync()
+        private async Task _initializeConfigurationSources()
         {
-            // サンプル
+            this._configurationSources = new KeiseiZaisenConfigurationSources(
+                (await this.GetRawIkisakisAsync()).Ikisaki,
+                (await this.GetRawStationsAsync()).Station,
+                (await this.GetRawStopsAsync()).Stop,
+                (await this.GetRawSyasyusAsync()).Syasyu);
+        }
+
+        public async Task<TrafficInfo> GetRawTrafficInfoAsync()
+        {
             var uri = new Uri("https://zaisen.tid-keisei.jp/data/traffic_info.json?ts=1724384830035");
-            return await this.GetJsonDataAsync<TrafficInfo>(uri);
+            return await this._getJsonDataAsync<TrafficInfo>(uri);
         }
 
-        public async Task<Stations> GetStationsAsync()
+        public async Task<Stations> GetRawStationsAsync()
         {
-            // サンプル
             var uri = new Uri("https://zaisen.tid-keisei.jp/config/station.json?ver=2.04");
-            return await this.GetJsonDataAsync<Stations>(uri);
+            return await this._getJsonDataAsync<Stations>(uri);
         }
 
-        public async Task<Ikisakis> GetIkisakisAsync()
+        public async Task<Ikisakis> GetRawIkisakisAsync()
         {
-            // サンプル
             var uri = new Uri("https://zaisen.tid-keisei.jp/config/ikisaki.json?ver=2.04");
-            return await this.GetJsonDataAsync<Ikisakis>(uri);
+            return await this._getJsonDataAsync<Ikisakis>(uri);
         }
 
-        public async Task<Stops> GetStopsAsync()
+        public async Task<Stops> GetRawStopsAsync()
         {
-            // サンプル
             var uri = new Uri("https://zaisen.tid-keisei.jp/config/stop.json?ver=2.04");
-            return await this.GetJsonDataAsync<Stops>(uri);
+            return await this._getJsonDataAsync<Stops>(uri);
         }
 
-        public async Task<Syasyus> GetSyasyusAsync()
+        public async Task<Syasyus> GetRawSyasyusAsync()
         {
-            // サンプル
             var uri = new Uri("https://zaisen.tid-keisei.jp/config/syasyu.json?ver=2.04");
-            return await this.GetJsonDataAsync<Syasyus>(uri);
+            return await this._getJsonDataAsync<Syasyus>(uri);
+        }
+
+        public async Task<IEnumerable<KeiseiZaisenTrain>> GetAllTrainsAsync(bool sort = true)
+        {
+            if (this._configurationSources == null)
+                await this._initializeConfigurationSources();
+            if (this._configurationSources == null)
+                throw new Exception();
+
+            var trafficInfos = await this.GetRawTrafficInfoAsync();
+            var trafficSections = new List<TrafficSection>();
+            trafficSections.AddRange(trafficInfos.TS);
+            trafficSections.AddRange(trafficInfos.EK);
+
+            if (sort)
+            {
+                var alphOrder = new Func<char, int>(c =>
+                {
+                    return c switch
+                    {
+                        'D' => 0,  // D が最初
+                        'E' => 1,  // E が次
+                        'U' => 2,  // U が最後
+                        _ => 3     // その他は想定外
+                    };
+                });
+
+                trafficSections.Sort((x, y) =>
+                {
+                    // 数値部分を比較
+                    int numberX = int.Parse(x.Id.Substring(1)); // 文字列の2文字目以降を数値に変換
+                    int numberY = int.Parse(y.Id.Substring(1));
+                    int result = numberX.CompareTo(numberY);
+
+                    // 数値が同じ場合、アルファベット部分をカスタム順序で比較
+                    if (result == 0)
+                    {
+                        result = alphOrder(x.Id[0]).CompareTo(alphOrder(y.Id[0]));
+                    }
+
+                    return result;
+                });
+            }
+
+            var resultTrains = new List<KeiseiZaisenTrain>();
+            foreach (var sect in trafficSections)
+            {
+                for (var i = 0; i < sect.Tr.Count; i++)
+                {
+                    resultTrains.Add(new KeiseiZaisenTrain(this._configurationSources, sect, i));
+                }
+            }
+
+            return resultTrains;
         }
 
         public void Dispose()

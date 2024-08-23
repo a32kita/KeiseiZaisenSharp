@@ -7,16 +7,32 @@ namespace KeiseiZaisenSharp.DemoAndTests.Demo001
         static void Main(string[] args)
         {
             using (var kzSv = new KeiseiZaisenService())
-                MainProc(kzSv).Wait();
+                MainProc2(kzSv).Wait();
+        }
+
+        static async Task MainProc2(KeiseiZaisenService kzSv)
+        {
+            var trains = await kzSv.GetAllTrainsAsync();
+            foreach (var train in trains)
+            {
+                Console.WriteLine("* ==============");
+                Console.WriteLine("  {0} {1}行き", train.TrainType, train.Destination);
+                Console.WriteLine("  列車番号 = {0}", train.TrainNumber);
+                Console.WriteLine("  走行位置 = {0}", train.Location.Description);
+                Console.WriteLine("  ==============");
+                Console.WriteLine();
+            }
+
+            Console.ReadLine();
         }
 
         static async Task MainProc(KeiseiZaisenService kzSv)
         {
-            var trafficInfo = await kzSv.GetTrafficInfoAsync();
-            var stations = await kzSv.GetStationsAsync();
-            var ikisakis = await kzSv.GetIkisakisAsync();
-            var stops = await kzSv.GetStopsAsync();
-            var syasyus = await kzSv.GetSyasyusAsync();
+            var trafficInfo = await kzSv.GetRawTrafficInfoAsync();
+            var stations = await kzSv.GetRawStationsAsync();
+            var ikisakis = await kzSv.GetRawIkisakisAsync();
+            var stops = await kzSv.GetRawStopsAsync();
+            var syasyus = await kzSv.GetRawSyasyusAsync();
 
             var enameConverter = (string s) =>
             {
