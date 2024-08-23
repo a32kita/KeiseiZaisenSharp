@@ -5,8 +5,8 @@
     <Nullable>enable</Nullable>
     <Title>KeiseiZaisen Sharp</Title>
     <Version>$([System.DateTime]::Now.ToString('0.yy.M.dHH'))-beta-$([System.DateTime]::Now.ToString('mmss'))</Version>
-    <AssemblyVersion>$([System.DateTime]::Now.ToString('0.yy.M.dHH'))-beta-$([System.DateTime]::Now.ToString('mmss'))</AssemblyVersion>
-    <FileVersion>$([System.DateTime]::Now.ToString('0.yy.M.dHH'))-beta-$([System.DateTime]::Now.ToString('mmss'))</FileVersion>
+    <AssemblyVersion>$([System.DateTime]::Now.ToString('0.yy.M.dHH'))</AssemblyVersion>
+    <FileVersion>$([System.DateTime]::Now.ToString('0.yy.M.dHH'))</FileVersion>
     <Copyright>© 2024 Explorers of the Binary World</Copyright>
     <PackageProjectUrl>https://github.com/a32kita/KeiseiZaisenSharp</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
