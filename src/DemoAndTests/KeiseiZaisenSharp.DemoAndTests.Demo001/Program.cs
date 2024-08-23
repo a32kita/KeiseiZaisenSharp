@@ -24,9 +24,13 @@ namespace KeiseiZaisenSharp.DemoAndTests.Demo001
             foreach (var train in trains.Where(item => item.Location.Description.Contains("青砥")))
                 PrintTrainInfo(train, false);
 
+            Console.WriteLine();
             Console.WriteLine("JSON 出力");
             Console.WriteLine();
-            Console.WriteLine(JsonSerializer.Serialize(trains, new JsonSerializerOptions() { WriteIndented = true }));
+
+            var json = JsonSerializer.Serialize(trains, new JsonSerializerOptions() { WriteIndented = true });
+            Console.WriteLine(json);
+            File.WriteAllText(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "result.json"), json);
 
             Console.ReadLine();
         }
