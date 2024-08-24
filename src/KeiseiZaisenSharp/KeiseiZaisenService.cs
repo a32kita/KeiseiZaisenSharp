@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Runtime;
 using System.Text;
@@ -26,16 +27,27 @@ namespace KeiseiZaisenSharp
 
         private Uri _baseUri;
 
+        /// <summary>
+        /// 接続先のシステムのベース URI を取得します。
+        /// </summary>
         public string BaseUri
         {
             get => this._baseUri.ToString();
         }
 
+        /// <summary>
+        /// 接続先のシステムのバージョンを取得します。
+        /// </summary>
         public string SystemVersion
         {
             get;
         }
 
+        /// <summary>
+        /// <see cref="Uri"/> とシステムのバージョン情報から <see cref="KeiseiZaisenService"/> クラスの新しいインスタンスを初期化します。
+        /// </summary>
+        /// <param name="baseUri">(省略可) システムのベース URL を指定します。デバッグ用非本番環境やキャッシュ環境を利用する場合にのみご利用ください。末尾を / の形で指定してください。</param>
+        /// <param name="systemVersion">(省略可) システムのバージョンを指定します。</param>
         public KeiseiZaisenService(Uri? baseUri = null, string systemVersion = "2.04")
         {
             if (baseUri == null)
@@ -109,13 +121,24 @@ namespace KeiseiZaisenSharp
 
         private async Task _initializeConfigurationSources()
         {
-            this._configurationSources = new KeiseiZaisenConfigurationSources(
-                (await this.GetRawIkisakisAsync()).Ikisaki,
-                (await this.GetRawStationsAsync()).Station,
-                (await this.GetRawStopsAsync()).Stop,
-                (await this.GetRawSyasyusAsync()).Syasyu);
+            try
+            {
+                this._configurationSources = new KeiseiZaisenConfigurationSources(
+                    (await this.GetRawIkisakisAsync()).Ikisaki,
+                    (await this.GetRawStationsAsync()).Station,
+                    (await this.GetRawStopsAsync()).Stop,
+                    (await this.GetRawSyasyusAsync()).Syasyu);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("在線システムからの構成情報の取得に失敗しました。", ex);
+            }
         }
 
+        /// <summary>
+        /// (非推奨) リアルタイムの在線情報の生データを取得します。
+        /// </summary>
+        /// <returns></returns>
         public async Task<TrafficInfo> GetRawTrafficInfoAsync()
         {
             var unixEpcTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -124,6 +147,10 @@ namespace KeiseiZaisenSharp
             return await this._getJsonDataAsync<TrafficInfo>(uri);
         }
 
+        /// <summary>
+        /// (非推奨) 駅一覧情報の生データを取得します。
+        /// </summary>
+        /// <returns></returns>
         public async Task<Stations> GetRawStationsAsync()
         {
             var uri = new Uri(this._baseUri, $"config/station.json?ver={this.SystemVersion}");
@@ -131,6 +158,10 @@ namespace KeiseiZaisenSharp
             return await this._getJsonDataAsync<Stations>(uri);
         }
 
+        /// <summary>
+        /// (非推奨) 行き先一覧の生データを取得します。
+        /// </summary>
+        /// <returns></returns>
         public async Task<Ikisakis> GetRawIkisakisAsync()
         {
             var uri = new Uri(this._baseUri, $"config/ikisaki.json?ver={this.SystemVersion}");
@@ -138,6 +169,10 @@ namespace KeiseiZaisenSharp
             return await this._getJsonDataAsync<Ikisakis>(uri);
         }
 
+        /// <summary>
+        /// (非推奨) 停車場情報の生データを取得します。
+        /// </summary>
+        /// <returns></returns>
         public async Task<Stops> GetRawStopsAsync()
         {
             var uri = new Uri(this._baseUri, $"config/stop.json?ver={this.SystemVersion}");
@@ -145,6 +180,10 @@ namespace KeiseiZaisenSharp
             return await this._getJsonDataAsync<Stops>(uri);
         }
 
+        /// <summary>
+        /// (非推奨) 種別一覧の生データを取得します。
+        /// </summary>
+        /// <returns></returns>
         public async Task<Syasyus> GetRawSyasyusAsync()
         {
             var uri = new Uri(this._baseUri, $"config/syasyu.json?ver={this.SystemVersion}");
@@ -152,6 +191,12 @@ namespace KeiseiZaisenSharp
             return await this._getJsonDataAsync<Syasyus>(uri);
         }
 
+        /// <summary>
+        /// 現在営業線上にいるすべての列車の情報を取得します。
+        /// </summary>
+        /// <param name="sort"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<KeiseiZaisenTrain>> GetAllTrainsAsync(bool sort = true)
         {
             if (this._configurationSources == null)
@@ -204,6 +249,43 @@ namespace KeiseiZaisenSharp
             }
 
             return resultTrains;
+        }
+
+        /// <summary>
+        /// 名前から停車場の情報 (<see cref="StopEntry"/>) を取得します。
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="exactMatch"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<StopEntry?> FindStopEntryAsync(string name, bool exactMatch = false)
+        {
+            if (this._configurationSources == null)
+                await this._initializeConfigurationSources();
+            if (this._configurationSources == null)
+                throw new Exception();
+
+            if (exactMatch)
+                return this._configurationSources.Stops.FirstOrDefault(item => item.Name.Equals(name));
+            
+            return this._configurationSources.Stops.FirstOrDefault(item => item.Name.Contains(name));
+        }
+
+        /// <summary>
+        /// <see cref="StopEntry"/> から隣の停車場 (<see cref="StopEntry"/>) の情報を取得します。
+        /// </summary>
+        /// <param name="stopEntry">停車場</param>
+        /// <param name="direction">進行方向 (0 = 上り, 1 = 下り)</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<StopEntry?> GetNextStopAsync(StopEntry stopEntry, int direction = 0)
+        {
+            if (this._configurationSources == null)
+                await this._initializeConfigurationSources();
+            if (this._configurationSources == null)
+                throw new Exception();
+
+            return this._configurationSources.GetNextStop(stopEntry, direction);
         }
 
         public void Dispose()

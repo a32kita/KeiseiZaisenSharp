@@ -8,7 +8,7 @@ namespace KeiseiZaisenSharp.DemoAndTests.Demo001
         static void Main(string[] args)
         {
             var baseUri = new Uri("https://php-api-sv02.a32kita.net/keisei_dummy/");
-            baseUri = null;
+            //baseUri = null;
 
             using (var kzSv = new KeiseiZaisenService(baseUri))
                 MainProc2(kzSv).Wait();
@@ -23,6 +23,25 @@ namespace KeiseiZaisenSharp.DemoAndTests.Demo001
             Console.WriteLine("青砥駅周辺の列車");
             foreach (var train in trains.Where(item => item.Location.Description.Contains("青砥")))
                 PrintTrainInfo(train, false);
+
+            var ekiName = "青砥";
+            Console.WriteLine();
+            Console.WriteLine("{0}駅に関する情報 (不完全一致)", ekiName);
+            var aotoSta = await kzSv.FindStopEntryAsync(ekiName, false);
+            Console.WriteLine("Name = {0}", aotoSta?.Name);
+            Console.WriteLine("Code = {0}", aotoSta?.Code);
+            Console.WriteLine();
+            Console.WriteLine("{0}駅から一つ上野方面の駅の情報", aotoSta?.Name);
+            if (aotoSta == null)
+            {
+                Console.WriteLine("　元の駅が null のためスキップ");
+            }
+            else
+            {
+                var nextSta = await kzSv.GetNextStopAsync(aotoSta, 0);
+                Console.WriteLine("Name = {0}", nextSta?.Name);
+                Console.WriteLine("Code = {0}", nextSta?.Code);
+            }
 
             Console.WriteLine();
             Console.WriteLine("JSON 出力");
