@@ -13,7 +13,7 @@ namespace KeiseiZaisenSharp
         private KeiseiZaisenConfigurationSources _configurationSources;
 
         /// <summary>
-        /// 列車番号
+        /// 列車番号を取得します。
         /// </summary>
         public string? TrainNumber
         {
@@ -21,7 +21,7 @@ namespace KeiseiZaisenSharp
         }
 
         /// <summary>
-        /// 行き先
+        /// 行き先を取得します。
         /// </summary>
         public string? Destination
         {
@@ -29,7 +29,7 @@ namespace KeiseiZaisenSharp
         }
 
         /// <summary>
-        /// 種別
+        /// 種別を取得します。
         /// </summary>
         public string? TrainType
         {
@@ -37,7 +37,7 @@ namespace KeiseiZaisenSharp
         }
 
         /// <summary>
-        /// 現在の位置
+        /// 現在の列車の位置を取得します。
         /// </summary>
         public KeiseiZaisenTrainLocation Location
         {
@@ -45,7 +45,7 @@ namespace KeiseiZaisenSharp
         }
 
         /// <summary>
-        /// 遅延 (min)
+        /// 遅延 (min) を取得します。
         /// </summary>
         public int? Delay
         {
@@ -59,7 +59,7 @@ namespace KeiseiZaisenSharp
         }
 
         /// <summary>
-        /// サーバから取得した生データ
+        /// サーバから取得した生データを取得します。
         /// </summary>
         [JsonIgnore]
         public TrafficRecord RawSource
@@ -68,6 +68,12 @@ namespace KeiseiZaisenSharp
         }
 
 
+        /// <summary>
+        /// <see cref="KeiseiZaisenTrain"/> クラスの新しいインスタンスを初期化します。
+        /// </summary>
+        /// <param name="configurationSources"></param>
+        /// <param name="trafficSection"></param>
+        /// <param name="numberInSection"></param>
         public KeiseiZaisenTrain(KeiseiZaisenConfigurationSources configurationSources, TrafficSection trafficSection, int numberInSection)
         {
             this._configurationSources = configurationSources;
